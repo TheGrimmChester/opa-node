@@ -1,0 +1,22 @@
+{
+  "name": "opa-node",
+  "version": "0.1.0",
+  "description": "Zero-dependency Node.js instrumentation agent for the OPA APM platform",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "author": "TheGrimmChester",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test/unit.test.js"
+  },
+  "keywords": [
+    "apm",
+    "tracing",
+    "instrumentation",
+    "opa",
+    "observability"
+  ],
+  "dependencies": {}
+}
