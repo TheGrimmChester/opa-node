@@ -99,6 +99,15 @@ lazily, buffers up to 1000 spans while reconnecting (250ms–5s backoff), drops
 on overflow, never throws into application code, and never keeps the process
 alive (the socket is `unref()`ed).
 
+## Limitations
+
+- The global `fetch()` (undici) is **not yet instrumented** — only outbound
+  calls made through `http.request`/`https.request` (and libraries built on
+  them, e.g. axios's Node adapter) are captured. Planned for v0.2.
+- Express route templates are not grouped: spans are named after the concrete
+  URL path (`GET /users/42`), not the route pattern (`GET /users/:id`), so
+  parameterized routes appear as separate transactions in the dashboard.
+
 ## Example & tests
 
 ```bash

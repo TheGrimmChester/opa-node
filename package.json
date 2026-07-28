@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "description": "Zero-dependency Node.js instrumentation agent for the OPA APM platform",
   "main": "lib/index.js",
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheGrimmChester/opa-node.git"
+  },
   "license": "MIT",
   "author": "TheGrimmChester",
   "engines": {
