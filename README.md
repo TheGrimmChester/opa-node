@@ -99,14 +99,35 @@ lazily, buffers up to 1000 spans while reconnecting (250ms–5s backoff), drops
 on overflow, never throws into application code, and never keeps the process
 alive (the socket is `unref()`ed).
 
+## Outbound calls
+
+Both HTTP clients are instrumented, and each outbound call carries a W3C
+`traceparent` header so the downstream service continues the same trace:
+
+- **`http.request` / `https.request`** (and libraries built on them, e.g.
+  axios's Node adapter)
+- **the global `fetch()`** (undici) — the default client on Node ≥ 18. A
+  `traceparent` you set yourself is never overwritten.
+
+## Route templates
+
+Spans are named after the framework's route template when one is available, so
+parameterized routes aggregate as one endpoint:
+
+| Framework | Source | Span name |
+|---|---|---|
+| Express | `req.baseUrl` + `req.route.path` | `GET /users/:id` |
+| Fastify | `req.routeOptions.url` (v4+) or `req.routerPath` | `GET /items/:sku` |
+| plain `http` | concrete path | `GET /plain/path` |
+
+The concrete path stays on the span as `url_path`, so drill-downs and filters
+still target individual requests.
+
 ## Limitations
 
-- The global `fetch()` (undici) is **not yet instrumented** — only outbound
-  calls made through `http.request`/`https.request` (and libraries built on
-  them, e.g. axios's Node adapter) are captured. Planned for v0.2.
-- Express route templates are not grouped: spans are named after the concrete
-  URL path (`GET /users/42`), not the route pattern (`GET /users/:id`), so
-  parameterized routes appear as separate transactions in the dashboard.
+- Database and cache calls are **manually recorded** (`opa.recordSql()`,
+  `opa.recordRedis()`); there is no automatic `pg` / `mysql2` / `ioredis`
+  patching yet.
 
 ## Example & tests
 
