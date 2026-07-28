@@ -123,11 +123,42 @@ parameterized routes aggregate as one endpoint:
 The concrete path stays on the span as `url_path`, so drill-downs and filters
 still target individual requests.
 
+## Database & cache calls
+
+`pg`, `mysql2` and `ioredis` are instrumented automatically. None of them is a
+dependency of this package — each is patched only if your app already has it
+installed, and skipped silently otherwise:
+
+| Module | Patched | Recorded on the span |
+|---|---|---|
+| `pg` | `Client.prototype.query`, `Pool.prototype.query` | `sql[]` — statement text + duration |
+| `mysql2` (incl. `mysql2/promise`) | `Connection.prototype.query` / `.execute` | `sql[]` — statement text + duration |
+| `ioredis` | `Redis.prototype.sendCommand` | `redis[]` — command, first key, duration |
+
+Promise and callback styles are both handled. Calls made outside a request
+(no active span) pass straight through untouched. `opa.recordSql()` /
+`opa.recordRedis()` remain available for anything not covered.
+
+## Logs
+
+`opa.log()` ships a structured log line over the same socket as spans, so it
+lands on the dashboard's **Logs** page — and when called during a request it
+carries that trace id, so the log links to the trace that produced it:
+
+```js
+opa.logInfo('order placed', { order_id: 'A-1', total: 42.5 })
+opa.logWarn('retrying payment', { attempt: 2 })
+opa.logError('checkout failed', { order_id: 'A-1' })
+opa.log('DEBUG', 'cache miss', { key: 'user:42' })   // any level
+```
+
+Safe to call before `start()`, after `shutdown()`, or with the agent disabled —
+it simply does nothing.
+
 ## Limitations
 
-- Database and cache calls are **manually recorded** (`opa.recordSql()`,
-  `opa.recordRedis()`); there is no automatic `pg` / `mysql2` / `ioredis`
-  patching yet.
+- Outbound calls made by clients that bypass both `http.request` and global
+  `fetch` (a raw socket protocol, or a native addon) are not captured.
 
 ## Example & tests
 
