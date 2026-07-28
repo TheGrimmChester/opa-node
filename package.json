@@ -1,6 +1,6 @@
 {
   "name": "opa-node",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Zero-dependency Node.js instrumentation agent for the OPA APM platform",
   "main": "lib/index.js",
   "files": [
@@ -18,7 +18,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/unit.test.js && node test/v02.test.js"
+    "test": "node test/unit.test.js && node test/v02.test.js && node test/db-log.test.js"
   },
   "keywords": [
     "apm",
