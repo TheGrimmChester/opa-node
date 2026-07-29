@@ -170,6 +170,44 @@ npm test                   # or: node test/unit.test.js
 See [docker/e2e.md](docker/e2e.md) for running the example against a full OPA
 stack and verifying spans in ClickHouse and the dashboard.
 
+## Runtime metrics
+
+Enabled by default. Reported every 15s on the same socket as spans, as a
+`type:"metric"` batch — no new port or protocol.
+
+```js
+opa.start({ runtimeMetrics: false })            // opt out
+opa.start({ runtimeMetricsIntervalMs: 30000 })  // or slow it down
+```
+`OPA_RUNTIME_METRICS=0` and `OPA_RUNTIME_METRICS_INTERVAL_MS` do the same.
+
+**Every number here is unreachable from outside the process.** A host collector sees
+a Node process using 400 MB and one core; it cannot see that the event loop is
+800 ms behind, that old-space is nearly full with GC running continuously, or that
+the app is holding 40,000 sockets open. Those are what explain a Node service whose
+spans all look fine while requests queue.
+
+| Metric | Why it matters |
+|---|---|
+| `nodejs.eventloop.delay{quantile}` · `.max` | A blocked loop makes requests *wait before your handler runs*. The span times the handler, so it records a fast request while the user waited. Nothing else shows this. |
+| `nodejs.eventloop.utilization` | Fraction of wall time the loop spent working. Unlike CPU%, it is specific to the loop, so ≈1 means the loop is the bottleneck even on an idle-looking host. |
+| `nodejs.heap.utilization` · `.used` · `.limit` | OOM is measured against `heap_size_limit`, so this ratio is what predicts a crash. |
+| `nodejs.heap.space.used{space}` | Where a leak becomes legible: `old_space` growing while `new_space` is flat is retention, not churn. |
+| `nodejs.heap.external` · `.malloced` · `process.memory.array_buffers` | Node is frequently killed for memory *outside* the JS heap — Buffers live there, so a heap graph alone cannot explain the OOM. |
+| `nodejs.gc.collections{kind}` · `.duration{kind}` | A scavenge storm and a run of mark-sweeps are different problems: allocation churn vs retention pressure. |
+| `nodejs.active_resources{resource_type}` | A steadily climbing count is leaked sockets, timers or handles — invisible to any host metric. |
+
+**Delay has a floor.** `monitorEventLoopDelay` samples at 20 ms resolution, so a
+perfectly idle loop reports ≈20 ms. Alert on the *change*, not the absolute value;
+a real stall is unmistakable (a 300 ms block shows as `delay.max` ≈307 ms).
+
+GC is typed `delta`, not `counter`: it is accumulated since the last report and then
+cleared, so each point is a change over an interval. Declaring it a cumulative
+counter would make every rate derived from it wrong.
+
+The reporter's timer is `unref()`d — a monitoring agent must never change the
+lifetime of the process it monitors.
+
 ## License
 
 MIT © TheGrimmChester

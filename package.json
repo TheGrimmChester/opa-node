@@ -18,7 +18,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/unit.test.js && node test/v02.test.js && node test/db-log.test.js"
+    "test": "node test/unit.test.js && node test/v02.test.js && node test/db-log.test.js && node test/runtimeMetrics.test.js"
   },
   "keywords": [
     "apm",
