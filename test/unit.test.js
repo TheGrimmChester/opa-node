@@ -281,3 +281,26 @@ test('manual API is a safe no-op outside a span context', () => {
   opa.recordRedis('get', 'k', 1);
   opa.addTags({ a: 1 });
 });
+
+test('rate limiter admits then carries residual on sample_weight', () => {
+  const { RateLimiter } = require('../lib/rateLimit');
+  const lim = new RateLimiter();
+  const a = lim.allow('GET /x', 60, 1);
+  assert.strictEqual(a.allowed, true);
+  assert.strictEqual(a.weightBonus, 0);
+  assert.strictEqual(lim.allow('GET /x', 60, 1).allowed, false);
+  assert.strictEqual(lim.allow('GET /x', 60, 1).allowed, false);
+  // Force a token without waiting a full refill second.
+  lim.buckets.get('GET /x').tokens = 1;
+  const b = lim.allow('GET /x', 60, 1);
+  assert.strictEqual(b.allowed, true);
+  assert.strictEqual(b.weightBonus, 2);
+});
+
+test('config reads maxTracesPerMinute', () => {
+  const cfg = resolveConfig({ maxTracesPerMinute: 120, rateLimitBurst: 10 });
+  assert.strictEqual(cfg.maxTracesPerMinute, 120);
+  assert.strictEqual(cfg.rateLimitBurst, 10);
+  const cfg0 = resolveConfig({});
+  assert.strictEqual(cfg0.maxTracesPerMinute, 0);
+});
