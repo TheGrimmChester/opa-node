@@ -1,4 +1,4 @@
-# Wave 18 — Serverless / FaaS packaging
+# Serverless / FaaS packaging
 
 ## Lifecycle-safe transport (18-1)
 
@@ -48,4 +48,4 @@ version matching your runtime. Set `opa.transport` to TCP/HTTP toward the agent 
 ensure request-end flush (`opa` already flushes on RSHUTDOWN — still prefer short
 invocations and an HTTP ingest sidecar when the runtime freezes early).
 
-See `docs/wave18-serverless.md` in OPA-Agent for APIs (cold start, cost).
+See `docs/serverless.md` in OPA-Agent for APIs (cold start, cost).

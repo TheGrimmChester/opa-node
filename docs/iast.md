@@ -1,4 +1,4 @@
-# opa-node IAST-lite (Wave 19)
+# opa-node IAST-lite
 
 Detection only — never blocks requests.
 
@@ -13,4 +13,4 @@ opa.iast.checkSQL("SELECT * FROM t WHERE id=' + req.query.id");
 opa.iast.installHooks();
 ```
 
-Findings are `type:iast` ND-JSON lines. Pair with Agent Wave 19 + Dashboard `/security`.
+Findings are `type:iast` ND-JSON lines. Pair with Agent Vulnerability / IAST APIs + Dashboard `/security`.
