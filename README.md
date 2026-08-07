@@ -57,6 +57,7 @@ app.listen(3000);
 | `service`               | `OPA_SERVICE`        | app's `package.json` name, else `node-app`   | Service name shown in the dashboard.          |
 | `organizationId`        | `OPA_ORGANIZATION_ID`| —                                            | Organization id tag.                          |
 | `projectId`             | `OPA_PROJECT_ID`     | —                                            | Project id tag.                               |
+| `ingestKey`             | `OPA_INGEST_KEY`     | —                                            | Project ingest key; auth envelope after connect. |
 | `samplingRate`          | `OPA_SAMPLING_RATE`  | `1`                                          | 0..1, decided per request at span creation.   |
 | `debug`                 | `OPA_DEBUG`          | off                                          | Log agent internals to stderr.                |
 
